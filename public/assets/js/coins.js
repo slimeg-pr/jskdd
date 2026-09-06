@@ -230,8 +230,9 @@
       '" aria-label="' + c.name + '" role="img">' + c.mark + '</svg>';
   }
 
-  global.Moneta = global.Moneta || {};
-  global.Moneta.COINS = COINS;
-  global.Moneta.coin = function (s) { return BY_SYMBOL[s]; };
-  global.Moneta.logo = logo;
-})(window);
+  var M = global.Moneta = global.Moneta || {};
+  M.COINS = COINS;
+  M.coin = function (s) { return BY_SYMBOL[s]; };
+  M.logo = logo;
+  if (typeof module !== 'undefined' && module.exports) module.exports = M;
+})(typeof window !== 'undefined' ? window : globalThis);

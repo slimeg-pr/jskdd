@@ -145,6 +145,65 @@
   }
   function stop() { clearInterval(timer); timer = null; }
 
+  /** Price vector in COINS order — what the server broadcasts. */
+  function snapshot() {
+    return M.COINS.map(function (c) { return state[c.symbol].price; });
+  }
+
+  /**
+   * Apply a price vector produced by the server. Browsers never invent
+   * prices: the server owns the tape, so a client cannot talk its own
+   * portfolio up before placing a trade.
+   */
+  function ingest(prices, serverTick) {
+    init();
+    tickCount = serverTick;
+    var moved = [];
+    for (var i = 0; i < M.COINS.length; i++) {
+      var c = M.COINS[i];
+      var s = state[c.symbol];
+      var p = prices[i];
+      if (!(p > 0)) continue;
+      s.prev = s.price;
+      s.price = p;
+      s.mins.push(p);
+      if (s.mins.length > MINS_PER_DAY) s.mins.shift();
+      s.minuteCursor++;
+      if (s.minuteCursor >= 60) {
+        s.minuteCursor = 0;
+        s.days.push(p);
+        if (s.days.length > DAYS) s.days.shift();
+      } else {
+        s.days[s.days.length - 1] = p;
+      }
+      moved.push(c.symbol);
+    }
+    for (var j = 0; j < listeners.length; j++) listeners[j](moved, tickCount);
+  }
+
+  /**
+   * Fast-forward a freshly built client engine to the server's tick count so
+   * both sides show the same recent tape shape before the first live tick.
+   */
+  function seedFrom(prices, serverTick) {
+    init();
+    tickCount = serverTick || 0;
+    for (var i = 0; i < M.COINS.length; i++) {
+      var s = state[M.COINS[i].symbol];
+      var p = prices[i];
+      if (!(p > 0)) continue;
+      var drift = p / s.price;
+      // rescale the recent tape so it lands exactly on the server's price
+      for (var k = 0; k < s.mins.length; k++) {
+        var w = k / (s.mins.length - 1);
+        s.mins[k] *= 1 + (drift - 1) * w;
+      }
+      s.days[s.days.length - 1] = p;
+      s.price = p;
+      s.prev = p;
+    }
+  }
+
   /* ── reads ──────────────────────────────────────────────── */
   function price(sym) { var s = state[sym]; return s ? s.price : 0; }
   function prev(sym) { var s = state[sym]; return s ? s.prev : 0; }
@@ -237,6 +296,10 @@
     start: start,
     stop: stop,
     tick: tick,
+    snapshot: snapshot,
+    tickCount: function () { return tickCount; },
+    ingest: ingest,
+    seedFrom: seedFrom,
     on: function (fn) { listeners.push(fn); return function () { listeners = listeners.filter(function (f) { return f !== fn; }); }; },
     price: price,
     prev: prev,
@@ -250,4 +313,5 @@
     low24: low24,
     ath: allTimeHigh
   };
-})(window);
+  if (typeof module !== 'undefined' && module.exports) module.exports = M;
+})(typeof window !== 'undefined' ? window : globalThis);

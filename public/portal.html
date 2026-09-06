@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monéta — Portal</title>
+<meta name="theme-color" content="#05040a">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/theme.css">
+<link rel="stylesheet" href="/assets/css/portal.css">
+</head>
+<body class="portal">
+
+<div class="field"></div>
+<div class="grain"></div>
+
+<div class="boot" id="boot"><div class="boot-mark" id="bootMark"></div><p>Opening the terminal…</p></div>
+
+<div class="shell" id="shell" hidden>
+
+  <!-- ══ sidebar ══ -->
+  <aside class="side">
+    <a class="brand" href="#" data-nav="home">
+      <span class="brand-mark" id="brandMark"></span>
+      <span>
+        <span class="brand-name">Monéta</span>
+        <span class="brand-sub">PORTAL</span>
+      </span>
+    </a>
+
+    <nav class="nav" id="nav">
+      <button class="nav-item active" data-nav="home"><span class="ic-slot" data-icon="home"></span>Home</button>
+      <button class="nav-item" data-nav="assets"><span class="ic-slot" data-icon="wallet"></span>My Assets<span class="nav-count" id="navAssets">—</span></button>
+      <button class="nav-item" data-nav="markets"><span class="ic-slot" data-icon="chart"></span>Markets<span class="nav-count" id="navMarkets">—</span></button>
+      <button class="nav-item" data-nav="vault"><span class="ic-slot" data-icon="badge"></span>Vault<span class="nav-count" id="navVault">—</span></button>
+      <button class="nav-item" data-nav="profile"><span class="ic-slot" data-icon="user"></span>Profile</button>
+    </nav>
+
+    <div class="side-label">Watchlist</div>
+    <div class="watch-mini" id="watchMini"></div>
+
+    <div class="side-foot">
+      <span class="pulse-dot" id="footDot"></span>
+      <span id="tickCounter">LIVE</span>
+      <button class="btn btn-ghost icon-btn" id="signOutBtn" style="margin-left:auto" title="Sign out" aria-label="Sign out"></button>
+    </div>
+  </aside>
+
+  <!-- ══ main ══ -->
+  <div class="main">
+    <header class="topbar">
+      <div class="search">
+        <span class="ic-slot search-ic" data-icon="search"></span>
+        <input id="searchInput" type="text" placeholder="Search assets…" autocomplete="off" aria-label="Search assets">
+        <kbd>/</kbd>
+        <div class="search-pop" id="searchPop"></div>
+      </div>
+
+      <div style="flex:1"></div>
+
+      <button class="live-pill" id="livePill" title="Pause or resume the feed">
+        <span class="pulse-dot"></span><span>Live</span>
+      </button>
+
+      <button class="avatar-pill" data-nav="profile">
+        <span class="av" id="topAv" style="width:30px;height:30px"></span>
+        <span class="pill-text">
+          <span class="nm" id="topName">—</span>
+          <span class="hd" id="topHandle">—</span>
+        </span>
+      </button>
+    </header>
+
+    <!-- ── home ── -->
+    <section class="view" id="view-home">
+      <div class="page-head">
+        <div>
+          <h1 id="greeting">Portfolio</h1>
+          <p id="greetingSub">Live simulated markets · 41 assets tracked</p>
+        </div>
+        <div class="tag"><span class="pulse-dot"></span> Obsidian Tier V</div>
+      </div>
+
+      <div class="hero" id="hero">
+        <div class="hero-top">
+          <div>
+            <div class="hero-label">
+              Total balance
+              <button class="eye-btn" id="eyeBtn" aria-label="Toggle balance visibility"></button>
+            </div>
+            <div class="balance" id="balance">$0.00</div>
+            <div class="delta-row">
+              <span class="delta" id="delta"><span>+0.00%</span></span>
+              <span class="delta-note" id="deltaAbs">—</span>
+            </div>
+          </div>
+          <div class="tf-row" id="heroTf"></div>
+        </div>
+        <div class="hero-chart"><canvas id="heroChart"></canvas></div>
+      </div>
+
+      <div class="grid g4 mt" id="homeStats"></div>
+
+      <div class="sec-head">
+        <h2>Top movers <span class="tag">24h</span></h2>
+        <button class="link" data-nav="markets">All markets</button>
+      </div>
+      <div class="grid g4" id="movers"></div>
+
+      <div class="sec-head">
+        <h2>Your assets</h2>
+        <button class="link" data-nav="assets">See all</button>
+      </div>
+      <div class="table-wrap"><div class="table-scroll"><table class="mkt" id="homeHoldings"></table></div></div>
+
+      <div class="sec-head">
+        <h2>Showcase</h2>
+        <button class="link" data-nav="vault">Open the vault</button>
+      </div>
+      <div class="showcase-strip" id="showcaseStrip"></div>
+    </section>
+
+    <!-- ── my assets ── -->
+    <section class="view" id="view-assets" hidden>
+      <div class="page-head">
+        <div><h1>My Assets</h1><p id="assetsSub">—</p></div>
+        <div class="filters" id="assetsFilters">
+          <button class="chip on" data-sort="value">By value</button>
+          <button class="chip" data-sort="change">By 24h move</button>
+          <button class="chip" data-sort="alpha">A–Z</button>
+        </div>
+      </div>
+      <div class="grid g4" id="assetsStats"></div>
+      <div class="table-wrap mt-lg"><div class="table-scroll"><table class="mkt" id="assetsTable"></table></div></div>
+    </section>
+
+    <!-- ── markets ── -->
+    <section class="view" id="view-markets" hidden>
+      <div class="page-head">
+        <div><h1>Markets</h1><p>Live prices across every listed asset. Click any row for the full chart.</p></div>
+      </div>
+      <div class="filters" id="marketFilters"></div>
+      <div class="table-wrap mt"><div class="table-scroll"><table class="mkt" id="marketTable"></table></div></div>
+    </section>
+
+    <!-- ── asset detail ── -->
+    <section class="view" id="view-detail" hidden>
+      <button class="btn btn-ghost" id="backBtn" style="margin-bottom:16px">Back to markets</button>
+      <div id="detailBody"></div>
+    </section>
+
+    <!-- ── vault ── -->
+    <section class="view" id="view-vault" hidden>
+      <div class="page-head">
+        <div><h1>The Vault</h1><p id="vaultSub">—</p></div>
+        <div class="search" style="max-width:280px">
+          <span class="ic-slot search-ic" data-icon="search"></span>
+          <input id="badgeSearch" type="text" placeholder="Search badges…" aria-label="Search badges">
+        </div>
+      </div>
+      <div class="vault-stats" id="tierFilters"></div>
+      <div class="filters mt" id="catFilters"></div>
+      <div class="vault-grid mt-lg" id="vaultGrid"></div>
+      <div class="empty" id="vaultEmpty" hidden>No badges match that search.</div>
+      <div style="text-align:center;margin-top:22px">
+        <button class="btn" id="vaultMore" hidden>Load more</button>
+      </div>
+    </section>
+
+    <!-- ── profile ── -->
+    <section class="view" id="view-profile" hidden>
+      <div class="profile-banner" id="profBanner"></div>
+      <div class="profile-body">
+        <div class="profile-id">
+          <span class="av" id="profAv"></span>
+          <div class="pi">
+            <h2 id="profName">—</h2>
+            <div class="handle" id="profHandle">—</div>
+            <div class="profile-title" id="profTitle">—</div>
+          </div>
+          <button class="btn btn-primary" id="editToggle">Edit profile</button>
+        </div>
+        <p class="profile-bio" id="profBio">—</p>
+        <div class="profile-meta" id="profMeta"></div>
+        <div class="divider"></div>
+        <div class="grid g4" id="profStats"></div>
+        <div class="sec-head"><h2>Showcase</h2><span style="font-size:11.5px;color:var(--text-3)">Pin badges from the vault</span></div>
+        <div class="showcase-strip" id="profShowcase"></div>
+      </div>
+
+      <div class="panel mt-lg" id="editPanel" hidden style="padding:24px">
+        <div class="sec-head" style="margin-top:0">
+          <h2>Customise</h2>
+          <span class="save-state" id="saveState"></span>
+        </div>
+
+        <div class="edit-grid">
+          <div class="fld">
+            <label for="fName">Display name</label>
+            <input id="fName" type="text" maxlength="32" placeholder="Your name">
+          </div>
+          <div class="fld">
+            <label for="fHandle">Handle</label>
+            <input id="fHandle" type="text" maxlength="24" placeholder="handle" spellcheck="false">
+          </div>
+          <div class="fld">
+            <label for="fTitle">Title</label>
+            <select id="fTitle"></select>
+          </div>
+          <div class="fld">
+            <label for="fLocation">Location</label>
+            <input id="fLocation" type="text" maxlength="40" placeholder="Somewhere dark">
+          </div>
+        </div>
+
+        <div class="fld mt-lg">
+          <label for="fBio">Bio</label>
+          <textarea id="fBio" maxlength="220" placeholder="Say something."></textarea>
+          <div class="cnt"><span id="bioCount">0</span>/220</div>
+        </div>
+
+        <div class="edit-grid mt-lg">
+          <div class="fld">
+            <label>Avatar sigil</label>
+            <div class="sigil-picks" id="sigilPicks"></div>
+            <label style="margin-top:14px" for="fUpload">Or upload an image</label>
+            <div class="upload-row">
+              <label class="btn upload-btn" for="fUpload"><span class="ic-slot" data-icon="upload"></span>Choose image</label>
+              <input id="fUpload" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="visually-hidden">
+              <button class="btn" id="clearAvatar" hidden>Remove</button>
+            </div>
+            <p class="hint-row">PNG, JPEG, GIF or WebP · under 512 KB · stored on the server, visible only to you.</p>
+          </div>
+          <div class="fld">
+            <label>Accent colour</label>
+            <div class="swatches" id="swatches"></div>
+            <label style="margin-top:14px" for="fAccentCustom">Custom</label>
+            <input id="fAccentCustom" type="color" class="color-input">
+          </div>
+          <div class="fld">
+            <label>Banner</label>
+            <div class="banner-picks" id="bannerPicks"></div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap">
+          <button class="btn btn-primary" id="saveProfile">Save changes</button>
+          <button class="btn" id="closeEditor">Done</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<nav class="mobile-nav" id="mobileNav" hidden>
+  <button class="active" data-nav="home"><span class="ic-slot" data-icon="home"></span>HOME</button>
+  <button data-nav="assets"><span class="ic-slot" data-icon="wallet"></span>ASSETS</button>
+  <button data-nav="markets"><span class="ic-slot" data-icon="chart"></span>MARKETS</button>
+  <button data-nav="vault"><span class="ic-slot" data-icon="badge"></span>VAULT</button>
+  <button data-nav="profile"><span class="ic-slot" data-icon="user"></span>PROFILE</button>
+</nav>
+
+<div class="modal-back" id="modalBack"><div class="modal" id="modal"></div></div>
+<div class="toasts" id="toasts"></div>
+
+<script src="/assets/js/fonts.js"></script>
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/mark.js"></script>
+<script src="/assets/js/coins.js"></script>
+<script src="/assets/js/util.js"></script>
+<script src="/assets/js/market.js"></script>
+<script src="/assets/js/badges.js"></script>
+<script src="/assets/js/prefs.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/chart.js"></script>
+<script src="/assets/js/portal.js"></script>
+</body>
+</html>

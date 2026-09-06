@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Monéta — Sign in</title>
+<meta name="description" content="Monéta. A private asset terminal.">
+<meta name="theme-color" content="#05040a">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/assets/css/theme.css">
+<link rel="stylesheet" href="/assets/css/auth.css">
+</head>
+<body>
+
+<div class="field"></div>
+<div class="grain"></div>
+<div class="flash" id="flash"></div>
+
+<main class="auth" id="auth">
+  <div class="auth-inner">
+
+    <div class="mark-wrap">
+      <div class="mark-ring"></div>
+      <div class="mark-ring r2"></div>
+      <div class="mark" id="mark"></div>
+    </div>
+
+    <h1 class="wordmark">Mon&eacute;ta</h1>
+    <p class="tagline">Private Asset Terminal</p>
+
+    <div class="hairline"></div>
+
+    <section class="authcard">
+      <div class="tabs" role="tablist">
+        <button class="tab active" id="tabLogin" role="tab" aria-selected="true">Sign in</button>
+        <button class="tab" id="tabSignup" role="tab" aria-selected="false">Create account</button>
+        <span class="tab-glider" id="glider"></span>
+      </div>
+
+      <!-- ── sign in ── -->
+      <form id="loginForm" autocomplete="on" novalidate>
+        <div class="fld">
+          <label for="liEmail">Email</label>
+          <div class="input-wrap">
+            <span class="ico" data-icon="mail"></span>
+            <input id="liEmail" name="email" type="email" autocomplete="username"
+                   inputmode="email" spellcheck="false" placeholder="you@example.com" required>
+          </div>
+        </div>
+
+        <div class="fld">
+          <label for="liPass">Password</label>
+          <div class="input-wrap">
+            <span class="ico" data-icon="lock"></span>
+            <input id="liPass" name="password" type="password" autocomplete="current-password"
+                   placeholder="Your password" required>
+            <button type="button" class="reveal" data-reveal="liPass" aria-label="Show password"></button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary submit" id="loginBtn">Sign in</button>
+        <div class="msg" id="loginMsg" role="status" aria-live="polite"></div>
+      </form>
+
+      <!-- ── create account ── -->
+      <form id="signupForm" autocomplete="on" novalidate hidden>
+        <div class="fld">
+          <label for="suEmail">Email</label>
+          <div class="input-wrap">
+            <span class="ico" data-icon="mail"></span>
+            <input id="suEmail" name="email" type="email" autocomplete="username"
+                   inputmode="email" spellcheck="false" placeholder="you@example.com" required>
+          </div>
+        </div>
+
+        <div class="fld">
+          <label for="suHandle">Handle</label>
+          <div class="input-wrap">
+            <span class="ico" data-icon="at"></span>
+            <input id="suHandle" name="handle" type="text" autocomplete="nickname"
+                   spellcheck="false" maxlength="24" placeholder="slimegeo" required>
+          </div>
+          <p class="hint-row">3–24 characters. Letters, numbers, dots and underscores.</p>
+        </div>
+
+        <div class="fld">
+          <label for="suPass">Password</label>
+          <div class="input-wrap">
+            <span class="ico" data-icon="lock"></span>
+            <input id="suPass" name="password" type="password" autocomplete="new-password"
+                   placeholder="At least 10 characters" required>
+            <button type="button" class="reveal" data-reveal="suPass" aria-label="Show password"></button>
+          </div>
+          <div class="meter"><span id="meterBar"></span></div>
+          <p class="hint-row" id="meterText">Use something long and unguessable.</p>
+        </div>
+
+        <button type="submit" class="btn btn-primary submit" id="signupBtn">Create account</button>
+        <div class="msg" id="signupMsg" role="status" aria-live="polite"></div>
+      </form>
+
+      <p class="legal">
+        Simulated markets. No real funds, no real trades, no payment details —
+        ever.
+      </p>
+    </section>
+
+    <div class="ticker-strip" id="strip"></div>
+  </div>
+</main>
+
+<div class="footnote">Monéta · Simulated market data · No real funds</div>
+
+<script src="/assets/js/fonts.js"></script>
+<script src="/assets/js/icons.js"></script>
+<script src="/assets/js/mark.js"></script>
+<script src="/assets/js/api.js"></script>
+<script src="/assets/js/auth.js"></script>
+</body>
+</html>

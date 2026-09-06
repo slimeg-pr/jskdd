@@ -1,0 +1,14 @@
+{
+  "name": "moneta",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Monéta — a login-gated crypto portal with a server-authoritative market.",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "MONETA_SECURE_COOKIES=0 node server/index.js",
+    "test": "node test/run.js"
+  },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}

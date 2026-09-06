@@ -73,4 +73,5 @@
   };
   M.dom = { el: el, $: $, $$: $$, esc: esc };
   M.clamp = clamp;
-})(window);
+  if (typeof module !== 'undefined' && module.exports) module.exports = M;
+})(typeof window !== 'undefined' ? window : globalThis);
