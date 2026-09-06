@@ -989,3 +989,7 @@ table.mkt tbody tr:last-child td { border-bottom: 0; }
 .save-state.bad { color: var(--down); }
 
 .profile-meta span { align-items: center; }
+
+/* ══ outlined wordmark in the sidebar brand ═══════════════ */
+.brand-name.is-outlined { display: block; line-height: 0; }
+.brand-name.is-outlined svg { display: block; width: 92px; height: auto; color: var(--text); }

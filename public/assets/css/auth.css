@@ -325,3 +325,19 @@
   color: var(--text-4);
   pointer-events: none;
 }
+
+/* Outlined wordmark — used once a font has been run through
+   tools/make-wordmark.py. Falls back to the gradient text above. */
+.wordmark.is-outlined {
+  background: none;
+  -webkit-text-fill-color: initial;
+  color: inherit;
+  filter: drop-shadow(0 0 30px rgba(177,77,255,.45));
+  line-height: 0;
+}
+.wordmark.is-outlined svg {
+  display: block;
+  width: min(340px, 78%);
+  height: auto;
+  margin: 0 auto;
+}

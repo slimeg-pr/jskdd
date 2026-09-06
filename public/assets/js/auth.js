@@ -12,6 +12,14 @@
 
   /* ── static chrome ── */
   $('#mark').innerHTML = M.markSVG();
+
+  // The wordmark is outlined vector when a font has been run through
+  // tools/make-wordmark.py; otherwise the live gradient text stands in.
+  if (M.wordmarkSVG) {
+    var wm = $('#wordmark');
+    wm.innerHTML = M.wordmarkSVG(null, { gradient: ['#ffffff', '#e6d4ff', '#a855f7'] });
+    wm.classList.add('is-outlined');
+  }
   $$('[data-icon]').forEach(function (n) {
     n.innerHTML = M.icon(n.dataset.icon, 18);
   });

@@ -150,6 +150,9 @@ There are no emoji anywhere in the app; a test enforces it.
   supplied artwork with potrace, symmetrised, and shipped as a transparent
   `currentColor` path (`public/assets/img/moneta-mark.svg`, 1.8 KB, 0.3 %
   pixel difference from the source).
+- **The wordmark** is set in a real typeface and shipped as outlines — see
+  *Setting the wordmark* below. Until a font is supplied it renders as live
+  gradient text in the display stack.
 - **UI and badge icons** are a 136-glyph line-art set drawn for this project on
   a 24×24 grid (`public/assets/js/icons.js`), rendered inline so they inherit
   colour and need no network request.
@@ -164,6 +167,45 @@ There are no emoji anywhere in the app; a test enforces it.
 
 The only external request the app makes is the Google Fonts stylesheet, loaded
 non-blockingly from JavaScript; offline you get the system font stack.
+
+## Setting the wordmark
+
+The logo type is generated, not hand-drawn. Drop a font file somewhere local
+and run:
+
+```bash
+pip install fonttools uharfbuzz
+python3 tools/make-wordmark.py path/to/MadawaskaRiver.otf
+```
+
+That writes `public/assets/js/wordmark.js` and
+`public/assets/img/moneta-wordmark.svg`. Both pages pick the result up on the
+next load — the sign-in wordmark and the sidebar brand — with no other edit.
+Without it, `wordmark.js` is a placeholder and the pages fall back to live
+text, so the app works either way.
+
+Shaping runs through HarfBuzz, so OpenType features apply: ligatures,
+contextual alternates and kerning all land as the designer intended. That
+matters for a face like **Madawaska River** (Ray Larabie / Typodermic), whose
+distressed texture is built from custom ligature substitutions rather than
+baked into the glyph outlines — a naive `cmap` lookup would render the clean
+letterforms and lose the effect entirely.
+
+Useful flags: `--text` to set a different string, `--features` to change the
+feature set, `--letter-spacing` for tracking, `--pad` for breathing room.
+
+### Why outlines and not a webfont
+
+The wordmark ships as vector paths and **no font binary lives in this repo**.
+That is partly technical — zero font requests, identical rendering everywhere,
+no FOUT on a logo — and partly licensing. Madawaska River's dafont licence
+covers desktop use, explicitly including making logos and web graphics;
+embedding the font itself in a web page is a separate licence you get from
+[typodermicfonts.com](https://typodermicfonts.com). Converting the set logo to
+outlines is the former. Bundling the `.otf` behind an `@font-face` rule would
+be the latter. If you hold a webfont licence and would rather self-host the
+live font, that is a small change — but check the licence you actually have
+before making it.
 
 ## Layout
 
@@ -181,6 +223,8 @@ public/
   assets/js/     icons · mark · coins · market · chart · badges
                  util · prefs · api · auth · portal · fonts
   assets/img/    moneta-mark.svg · favicon.svg
+tools/
+  make-wordmark.py   sets the wordmark in a font and emits outlines
 test/run.js      60 API and security tests
 data/            created at runtime; git-ignored
 ```

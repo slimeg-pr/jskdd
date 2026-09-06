@@ -1288,6 +1288,11 @@
     });
     $('#brandMark').innerHTML = M.markSVG();
     $('#bootMark').innerHTML = M.markSVG();
+    if (M.wordmarkSVG) {
+      var bn = $('#brandName');
+      bn.innerHTML = M.wordmarkSVG(null, { fill: 'currentColor' });
+      bn.classList.add('is-outlined');
+    }
     $('#signOutBtn').innerHTML = icon('logout', 14);
   }
 
