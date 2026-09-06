@@ -221,13 +221,24 @@
   var BY_SYMBOL = {};
   COINS.forEach(function (c) { BY_SYMBOL[c.symbol] = c; });
 
-  /** Renders a coin logo as an <svg> string at the given pixel size. */
+  var uid = 0;
+
+  /** Renders a coin logo as an <svg> string at the given pixel size.
+   *  Internal ids (gradients) are made unique per call: the same mark can
+   *  appear dozens of times on a page, and duplicate ids break every copy
+   *  but the first as soon as that first one is re-rendered away. */
   function logo(symbol, size) {
     var c = BY_SYMBOL[symbol];
     if (!c) return '';
     var s = size || 32;
+    var mark = c.mark;
+    if (mark.indexOf('id="') >= 0) {
+      var n = '-' + (++uid);
+      mark = mark.replace(/id="([^"]+)"/g, function (_m, id) { return 'id="' + id + n + '"'; })
+                 .replace(/url\(#([^)]+)\)/g, function (_m, id) { return 'url(#' + id + n + ')'; });
+    }
     return '<svg class="coin-logo" viewBox="0 0 32 32" width="' + s + '" height="' + s +
-      '" aria-label="' + c.name + '" role="img">' + c.mark + '</svg>';
+      '" aria-label="' + c.name + '" role="img">' + mark + '</svg>';
   }
 
   var M = global.Moneta = global.Moneta || {};

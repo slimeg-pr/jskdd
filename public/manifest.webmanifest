@@ -1,0 +1,22 @@
+{
+  "name": "Monéta — Private Asset Terminal",
+  "short_name": "Monéta",
+  "description": "A live simulated crypto terminal in obsidian and neon violet.",
+  "id": "/portal.html",
+  "start_url": "/portal.html",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#05040a",
+  "theme_color": "#05040a",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    { "src": "/assets/img/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/img/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/assets/img/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Markets", "url": "/portal.html#markets", "icons": [{ "src": "/assets/img/icon-192.png", "sizes": "192x192" }] },
+    { "name": "The Vault", "url": "/portal.html#vault", "icons": [{ "src": "/assets/img/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

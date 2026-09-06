@@ -29,6 +29,8 @@ const CSP = [
   "font-src https://fonts.gstatic.com",
   "img-src 'self' data:",
   "connect-src 'self'",
+  "manifest-src 'self'",
+  "worker-src 'self'",
   "form-action 'self'",
   "frame-ancestors 'none'",
   "base-uri 'none'",
@@ -66,7 +68,8 @@ const MIME = {
   '.ico': 'image/x-icon',
   '.json': 'application/json; charset=utf-8',
   '.txt': 'text/plain; charset=utf-8',
-  '.woff2': 'font/woff2'
+  '.woff2': 'font/woff2',
+  '.webmanifest': 'application/manifest+json; charset=utf-8'
 };
 
 function safeStaticPath(urlPath) {
@@ -116,7 +119,9 @@ function sendFile(req, res, file, st) {
     'Content-Type': type,
     'Content-Length': st.size,
     ETag: etag,
-    'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600, must-revalidate'
+    'Cache-Control': (ext === '.html' || file.endsWith('sw.js'))
+      ? 'no-cache'
+      : 'public, max-age=3600, must-revalidate'
   });
   res.writeHead(200, headers);
   if (req.method === 'HEAD') return res.end();

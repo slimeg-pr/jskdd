@@ -7,6 +7,12 @@
 <meta name="theme-color" content="#05040a">
 <meta name="referrer" content="no-referrer">
 <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/assets/img/apple-touch-icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Monéta">
 <link rel="stylesheet" href="/assets/css/theme.css">
 <link rel="stylesheet" href="/assets/css/portal.css">
 </head>
@@ -225,7 +231,7 @@
             <label>Avatar sigil</label>
             <div class="sigil-picks" id="sigilPicks"></div>
             <label style="margin-top:14px" for="fUpload">Or upload an image</label>
-            <div class="upload-row">
+            <div class="upload-row" id="uploadRow">
               <label class="btn upload-btn" for="fUpload"><span class="ic-slot" data-icon="upload"></span>Choose image</label>
               <input id="fUpload" type="file" accept="image/png,image/jpeg,image/gif,image/webp" class="visually-hidden">
               <button class="btn" id="clearAvatar" hidden>Remove</button>
@@ -265,6 +271,7 @@
 <div class="toasts" id="toasts"></div>
 
 <script src="/assets/js/fonts.js"></script>
+<script src="/assets/js/pwa.js"></script>
 <script src="/assets/js/icons.js"></script>
 <script src="/assets/js/mark.js"></script>
 <script src="/assets/js/wordmark.js"></script>
@@ -274,6 +281,7 @@
 <script src="/assets/js/badges.js"></script>
 <script src="/assets/js/prefs.js"></script>
 <script src="/assets/js/api.js"></script>
+<script src="/assets/js/feed-sse.js"></script>
 <script src="/assets/js/chart.js"></script>
 <script src="/assets/js/portal.js"></script>
 </body>

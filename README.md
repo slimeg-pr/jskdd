@@ -7,17 +7,58 @@ The front end is plain HTML, CSS and vanilla JavaScript. The back end is a
 Node HTTP server with **no dependencies** — `node:http`, `node:crypto` and the
 filesystem. There is no build step and nothing to install.
 
-## Run it
+There are two builds from one codebase.
+
+| | **Server build** | **Standalone build** |
+|---|---|---|
+| Run it | `npm start` | open the published page |
+| Accounts | email + password, scrypt | none — access is who the page is shared with |
+| State | your Node server | the artifact document store |
+| Trades | priced by the server | priced in the page |
+| Avatar upload | yes | sigils only |
+| Install to home screen | yes (PWA) | yes (browser "Add to Home Screen") |
+
+Everything above the two seams — `Moneta.api` for state, `Moneta.feed` for
+prices — is the same code in both.
+
+## Run the server build
 
 ```bash
 npm start                 # http://localhost:8787
 npm run dev               # same, with Secure cookies off for plain-http localhost
-npm test                  # 60 API + security tests
+npm test                  # 68 API, security and wiring tests
 ```
 
 Create an account on the landing page. There is no shared key and no demo
 login — every visitor gets their own account, and their portfolio lives on the
 server.
+
+It is an installable PWA: a manifest, maskable icons and a service worker that
+caches the app shell and **never** caches `/api`, so prices and balances are
+always live. On a phone, "Add to Home Screen" gives a standalone app with no
+browser chrome.
+
+## Build the standalone version
+
+```bash
+node tools/build-artifact.js      # -> build/moneta.html
+```
+
+One self-contained HTML file — every stylesheet and module inlined, no
+external scripts — that runs the whole portal with no server behind it.
+`public/assets/js/standalone.js` supplies `Moneta.api` (backed by the artifact
+document store, so a portfolio built on a phone is there on a laptop) and
+`Moneta.feed` (a local tick loop). When no store is available the app still
+runs, in memory, and says so on screen.
+
+Two honest caveats for that build. Without a server there is nowhere to verify
+a password, so there is no login — access is whatever the page is shared with,
+and a fake sign-in form would be theatre. And the market engine runs in the
+page, so a determined viewer could price their own fill; it is a simulation
+with no money in it, but it is not the same guarantee the server build gives.
+Because the runtime here has no per-viewer identity, everyone who can edit the
+page shares one portfolio — fine for a private page, worth knowing before
+sharing one.
 
 | Variable | Default | Purpose |
 |---|---|---|
@@ -52,6 +93,27 @@ unknown account produce the same message in the same amount of time.
 - **Profile** — banner, avatar (20 generated sigils or your own uploaded
   image), display name, handle, title, location, bio and an accent colour that
   recolours the portal live.
+
+## On a phone
+
+The phone is a first-class surface, not a squeezed desktop.
+
+- The sidebar becomes a bottom tab bar; the top bar and every view respect the
+  notch and the home indicator via `env(safe-area-inset-*)`.
+- **Tables become cards.** Below 720px each market row is a card laid out on a
+  small grid — asset and price on the first line, sparkline and 24h move on the
+  second, holdings where they apply. The columns that only matter on a big
+  screen (rank, 1h, 7d, market cap, volume) drop out; they are all on the asset
+  page.
+- Filter rails scroll horizontally with snap points instead of wrapping into a
+  tall block, and the page body never scrolls sideways on any view.
+- Every control clears a 32px touch target; hover effects are suppressed under
+  `(hover: none)` so nothing sticks in a pressed state after a tap.
+- Stat tiles go two-up, the vault goes two-up, charts and type step down, and
+  short landscape phones give the chart its height back.
+
+Verified at 390×844 with touch emulation: no horizontal overflow on any view,
+no undersized targets, no console errors.
 
 ## Security
 
@@ -119,7 +181,7 @@ touches `server/store.js`.
 
 ### Local storage
 
-The browser stores exactly one key, `moneta.ui.v1`, holding five cosmetic
+Both builds store exactly one key, `moneta.ui.v1`, holding five cosmetic
 values — the last tab, chart timeframe, chart style and sort order — each
 validated against an allow-list on read. Identity, balances, holdings,
 watchlist and profile all live on the server. A test in the suite fails the
@@ -223,9 +285,12 @@ public/
   assets/js/     icons · mark · coins · market · chart · badges
                  util · prefs · api · auth · portal · fonts
   assets/img/    moneta-mark.svg · favicon.svg
+  manifest.webmanifest · sw.js   installable app shell
 tools/
   make-wordmark.py   sets the wordmark in a font and emits outlines
-test/run.js      60 API and security tests
+  build-artifact.js  assembles the single-file standalone build
+test/run.js      68 API, security and wiring tests
+build/           generated standalone page; git-ignored
 data/            created at runtime; git-ignored
 ```
 

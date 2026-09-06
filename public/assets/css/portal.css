@@ -993,3 +993,195 @@ table.mkt tbody tr:last-child td { border-bottom: 0; }
 /* ══ outlined wordmark in the sidebar brand ═══════════════ */
 .brand-name.is-outlined { display: block; line-height: 0; }
 .brand-name.is-outlined svg { display: block; width: 92px; height: auto; color: var(--text); }
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE
+   The phone is a first-class surface, not a squeezed desktop.
+   Tables become cards, targets grow to thumb size, and the
+   layout respects the notch and the home indicator.
+   ══════════════════════════════════════════════════════════ */
+
+html { -webkit-text-size-adjust: 100%; }
+body.portal {
+  overscroll-behavior-y: contain;          /* no rubber-band under the app */
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: none) {
+  /* Hover states are lies on touch — keep the resting look. */
+  .card.hoverable:hover,
+  .mover:hover { transform: none; }
+  table.mkt tbody tr:hover { background: transparent; }
+  table.mkt tbody tr:active { background: rgba(177,77,255,.1); }
+  .badge:hover { transform: none; }
+  .badge:active { transform: scale(.97); }
+}
+
+@media (max-width: 980px) {
+  .topbar {
+    padding: 10px 14px;
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
+  .view {
+    padding: 16px 14px calc(96px + env(safe-area-inset-bottom));
+  }
+  .mobile-nav button { min-height: 48px; }        /* thumb-sized */
+  .page-head { gap: 12px; margin-bottom: 16px; }
+  .hero { padding: 20px 18px; }
+  .hero-chart { height: 168px; }
+  .sec-head { margin: 22px 0 10px; }
+  .tf { padding: 9px 13px; font-size: 12px; }     /* bigger tap target */
+  .chip { padding: 9px 14px; font-size: 12px; }
+  .btn { padding: 11px 18px; }
+  .star { padding: 8px; }
+  .star svg { width: 18px; height: 18px; }
+  .toasts { right: 12px; left: 12px; bottom: calc(78px + env(safe-area-inset-bottom)); }
+  .toast { min-width: 0; max-width: none; }
+  .modal-back { padding: 16px; align-items: flex-end; }
+  .modal { max-width: none; border-radius: var(--r-lg) var(--r-lg) 0 0; }
+  .modal .row .btn { padding: 14px; }
+}
+
+/* ── tables become cards ── */
+@media (max-width: 720px) {
+  .table-wrap {
+    background: none;
+    border: 0;
+    border-radius: 0;
+    overflow: visible;
+  }
+  .table-scroll { overflow: visible; }
+
+  table.mkt { min-width: 0; display: block; }
+  table.mkt thead { display: none; }
+  table.mkt tbody { display: flex; flex-direction: column; gap: 9px; }
+
+  table.mkt tr {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas:
+      'coin  price star'
+      'spark h24   star';
+    align-items: center;
+    column-gap: 12px;
+    row-gap: 6px;
+    padding: 13px 14px;
+    border-radius: var(--r);
+    border: 1px solid var(--edge-soft);
+    background: linear-gradient(160deg, rgba(20,16,34,.86), rgba(10,8,18,.9));
+  }
+  table.mkt tr.has-holdings {
+    grid-template-areas:
+      'coin  price value'
+      'spark h24   qty';
+  }
+  table.mkt td {
+    display: block;
+    padding: 0;
+    border: 0;
+    text-align: right;
+    white-space: nowrap;
+    min-width: 0;
+  }
+  table.mkt td[data-c='rank'],
+  table.mkt td[data-c='h1'],
+  table.mkt td[data-c='d7'],
+  table.mkt td[data-c='cap'],
+  table.mkt td[data-c='vol'] { display: none; }
+
+  table.mkt td[data-c='coin']  { grid-area: coin;  text-align: left; }
+  table.mkt td[data-c='price'] { grid-area: price; font-size: 15px; font-weight: 600; }
+  table.mkt td[data-c='h24']   { grid-area: h24; }
+  table.mkt td[data-c='spark'] { grid-area: spark; text-align: left; }
+  table.mkt td[data-c='star']  { grid-area: star; }
+  table.mkt td[data-c='value'] { grid-area: value; font-size: 14px; font-weight: 600; }
+  table.mkt td[data-c='qty']   { grid-area: qty; font-size: 11.5px; color: var(--text-3); }
+
+  /* the value column needs its own line under price on holdings cards */
+  table.mkt tr.has-holdings td[data-c='value'] { color: var(--text); }
+  .cell-label {
+    display: inline;
+    color: var(--text-4);
+    margin-right: 5px;
+    font-family: var(--sans);
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+  }
+  table.mkt .spark { width: 84px; height: 26px; }
+  .cell-coin .nm { font-size: 14px; }
+}
+.cell-label { display: none; }   /* label is a phone-only affordance */
+
+/* ── phones ── */
+@media (max-width: 620px) {
+  .page-head h1 { font-size: 21px; }
+  .page-head p { font-size: 12.5px; }
+  .balance { font-size: clamp(30px, 10vw, 44px); }
+  .vault-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .badge { padding: 14px 10px 12px; }
+  .badge .bic { width: 46px; height: 46px; border-radius: 13px; }
+  .showcase-strip .badge { min-width: 132px; }
+  .stat-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .filters { gap: 5px; }
+  .detail-chart { height: 240px; }
+  .asset-head .ah-name { font-size: 21px; }
+  .asset-price { font-size: clamp(26px, 8vw, 34px); }
+  .profile-banner { height: 122px; }
+  .profile-body { padding: 0 16px 20px; }
+  .profile-id { margin-top: -36px; gap: 14px; }
+  .profile-id .av { width: 84px; height: 84px; }
+  .profile-id h2 { font-size: 21px; }
+  .edit-grid { grid-template-columns: 1fr; }
+  .banner-picks { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .amt-field input { font-size: 18px; }
+  .quick button { padding: 10px 6px; }
+}
+
+/* Horizontal filter rails scroll instead of wrapping into a tall block. */
+@media (max-width: 620px) {
+  #marketFilters,
+  #catFilters,
+  #tierFilters,
+  #assetsFilters {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+    margin: 0 -14px;
+    padding-left: 14px;
+    padding-right: 14px;
+    scroll-snap-type: x proximity;
+  }
+  #marketFilters::-webkit-scrollbar,
+  #catFilters::-webkit-scrollbar,
+  #tierFilters::-webkit-scrollbar,
+  #assetsFilters::-webkit-scrollbar { display: none; }
+  #marketFilters .chip,
+  #catFilters .chip,
+  #tierFilters .tier-pill,
+  #assetsFilters .chip { flex: none; scroll-snap-align: start; }
+  .tf-row { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tf-row::-webkit-scrollbar { display: none; }
+}
+
+/* Short landscape phones: give the chart back some room. */
+@media (max-height: 520px) and (orientation: landscape) {
+  .hero-chart { height: 130px; }
+  .detail-chart { height: 190px; }
+}
+
+/* Tap-target and density corrections found in the phone audit. */
+@media (max-width: 980px) {
+  .live-pill { min-width: 44px; min-height: 40px; justify-content: center; }
+  .amt-field { padding: 8px 14px; }
+  .amt-field input { padding: 9px 0; }
+}
+@media (max-width: 620px) {
+  /* Two stat cards per row reads better than four full-width blocks. */
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .card { padding: 13px 14px; }
+  .card .v { font-size: 18px; }
+  .card .k { font-size: 9.5px; letter-spacing: .12em; }
+  .card .sub2 { font-size: 10.5px; }
+}

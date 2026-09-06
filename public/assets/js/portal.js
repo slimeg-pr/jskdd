@@ -12,10 +12,10 @@
   var icon = M.icon;
   var api = M.api;
   var prefs = M.prefs;
+  var build = M.build || { auth: true, uploads: true };
 
   /* ── session state (memory only) ────────────────────────── */
   var me = null;                   // the signed-in user, as the server sees them
-  var es = null;                   // live price stream
 
   var state = {
     view: prefs.get('view'),
@@ -103,7 +103,7 @@
   /** Turns an API rejection into a toast, and bounces to sign-in on 401. */
   function fail(err, what) {
     if (err && err.status === 401) {
-      if (es) { es.close(); es = null; }
+      M.feed.close();
       window.location.replace('/');
       return;
     }
@@ -157,6 +157,7 @@
   $('#backBtn').addEventListener('click', function () { go('markets'); });
 
   /* ── sign out ───────────────────────────────────────────── */
+  if (!build.auth) $('#signOutBtn').hidden = true;
   $('#signOutBtn').addEventListener('click', function () {
     openModal(
       '<div class="mic" style="--bcol:var(--neon);--bglow:rgba(177,77,255,.5)">' + icon('logout', 34) + '</div>' +
@@ -166,7 +167,7 @@
     $('#mCancel').onclick = closeModal;
     $('#mOut').onclick = async function () {
       $('#mOut').disabled = true;
-      if (es) { es.close(); es = null; }   // stop the feed retrying on a dead session
+      M.feed.close();                      // stop the feed retrying on a dead session
       try { await api.logout(); } catch (e) { /* leaving regardless */ }
       prefs.clear();
       window.location.replace('/');
@@ -311,27 +312,30 @@
     var qty = me.holdings[c.symbol] || 0;
     var cells = '';
 
-    cells += '<td class="l rank">' + c.rank + '</td>';
-    cells += '<td class="l"><div class="cell-coin">' + M.logo(c.symbol, 28) +
+    // data-c drives the phone layout: below 720px the table collapses into
+    // cards and CSS places each cell by name (see portal.css).
+    cells += '<td class="l rank" data-c="rank">' + c.rank + '</td>';
+    cells += '<td class="l" data-c="coin"><div class="cell-coin">' + M.logo(c.symbol, 28) +
       '<div><div class="nm">' + esc(c.name) + '</div><div class="sym">' + esc(c.symbol) + '</div></div></div></td>';
-    cells += '<td><span class="px" data-px="' + esc(c.symbol) + '">' + esc(fmt.price(price)) + '</span></td>';
+    cells += '<td data-c="price"><span class="px" data-px="' + esc(c.symbol) + '">' + esc(fmt.price(price)) + '</span></td>';
 
     if (opts.holdings) {
-      cells += '<td class="mono">' + esc(fmt.qty(qty)) + ' <span style="color:var(--text-4)">' + esc(c.symbol) + '</span></td>';
-      cells += '<td class="mono" data-val="' + esc(c.symbol) + '">' + esc(fmt.money(qty * price)) + '</td>';
+      cells += '<td class="mono" data-c="qty"><span class="cell-label">Holdings</span>' +
+        esc(fmt.qty(qty)) + ' <span style="color:var(--text-4)">' + esc(c.symbol) + '</span></td>';
+      cells += '<td class="mono" data-c="value" data-val="' + esc(c.symbol) + '">' + esc(fmt.money(qty * price)) + '</td>';
     }
-    cells += '<td><span class="chg ' + (c1 >= 0 ? 'up' : 'down') + '" data-chg="' + esc(c.symbol) + '|1H">' + esc(fmt.pct(c1)) + '</span></td>';
-    cells += '<td><span class="chg ' + (c24 >= 0 ? 'up' : 'down') + '" data-chg="' + esc(c.symbol) + '|1D">' + esc(fmt.pct(c24)) + '</span></td>';
+    cells += '<td data-c="h1"><span class="chg ' + (c1 >= 0 ? 'up' : 'down') + '" data-chg="' + esc(c.symbol) + '|1H">' + esc(fmt.pct(c1)) + '</span></td>';
+    cells += '<td data-c="h24"><span class="chg ' + (c24 >= 0 ? 'up' : 'down') + '" data-chg="' + esc(c.symbol) + '|1D">' + esc(fmt.pct(c24)) + '</span></td>';
     if (!opts.compact) {
-      cells += '<td><span class="chg ' + (c7 >= 0 ? 'up' : 'down') + '" data-chg="' + esc(c.symbol) + '|1W">' + esc(fmt.pct(c7)) + '</span></td>';
-      cells += '<td class="mono" style="color:var(--text-2)">' + esc(fmt.compact(mkt.marketCap(c.symbol))) + '</td>';
-      cells += '<td class="mono" style="color:var(--text-3)">' + esc(fmt.compact(mkt.volume24(c.symbol))) + '</td>';
+      cells += '<td data-c="d7"><span class="chg ' + (c7 >= 0 ? 'up' : 'down') + '" data-chg="' + esc(c.symbol) + '|1W">' + esc(fmt.pct(c7)) + '</span></td>';
+      cells += '<td class="mono" data-c="cap" style="color:var(--text-2)">' + esc(fmt.compact(mkt.marketCap(c.symbol))) + '</td>';
+      cells += '<td class="mono" data-c="vol" style="color:var(--text-3)">' + esc(fmt.compact(mkt.volume24(c.symbol))) + '</td>';
     }
-    cells += '<td>' + sparkSVG(c.symbol, c24 >= 0) + '</td>';
-    cells += '<td><button class="star ' + (watched ? 'on' : '') + '" data-star="' + esc(c.symbol) +
+    cells += '<td data-c="spark">' + sparkSVG(c.symbol, c24 >= 0) + '</td>';
+    cells += '<td data-c="star"><button class="star ' + (watched ? 'on' : '') + '" data-star="' + esc(c.symbol) +
       '" aria-label="Watch ' + esc(c.symbol) + '">' + icon('star', 15, watched ? { fill: 'currentColor' } : null) + '</button></td>';
 
-    return '<tr data-sym="' + esc(c.symbol) + '">' + cells + '</tr>';
+    return '<tr data-sym="' + esc(c.symbol) + '"' + (opts.holdings ? ' class="has-holdings"' : '') + '>' + cells + '</tr>';
   }
 
   function headHTML(cols) {
@@ -938,6 +942,8 @@
     }).join('');
 
     $('#clearAvatar').hidden = p.avatarKind !== 'image';
+    var up = $('#uploadRow');
+    if (up) up.hidden = !build.uploads;
   }
 
   /* profile editing — optimistic locally, confirmed by the server */
@@ -1142,33 +1148,28 @@
   });
 
   /* ══ live feed ═══════════════════════════════════════════ */
+  // The transport differs per build — Server-Sent Events when there is a
+  // server, a local tick loop when the page runs standalone — so it lives
+  // behind M.feed and this file does not care which one it got.
   function connectStream() {
-    if (es) { es.close(); es = null; }
-    es = new EventSource('/api/stream', { withCredentials: true });
-
-    es.addEventListener('hello', function (ev) {
-      var d = JSON.parse(ev.data);
-      mkt.seedFrom(d.p, d.t);
-      onTick(null, d.t);
+    M.feed.connect({
+      onHello: function (prices, tick) {
+        mkt.seedFrom(prices, tick);
+        onTick(null, tick);
+      },
+      onTick: function (prices, tick) {
+        if (state.paused) return;
+        mkt.ingest(prices, tick);
+      },
+      onStatus: function (ok, label) {
+        $('#footDot').style.background = ok ? '' : 'var(--gold)';
+        if (!ok) $('#tickCounter').textContent = label || 'RECONNECTING';
+      },
+      onLost: function () {
+        // Session gone server-side: back to the sign-in page.
+        window.location.replace('/');
+      }
     });
-    es.addEventListener('tick', function (ev) {
-      if (state.paused) return;
-      var d = JSON.parse(ev.data);
-      mkt.ingest(d.p, d.t);
-    });
-    es.onerror = function () {
-      $('#footDot').style.background = 'var(--gold)';
-      $('#tickCounter').textContent = 'RECONNECTING';
-      // EventSource reconnects on its own; if the session is gone the next
-      // /api/session check will bounce us to the sign-in page.
-      api.session().then(function (s) {
-        if (!s.authenticated) window.location.replace('/');
-      }).catch(function () { /* offline */ });
-    };
-    es.onopen = function () {
-      $('#footDot').style.background = '';
-      $('#tickCounter').textContent = 'LIVE';
-    };
   }
 
   $('#livePill').addEventListener('click', function () {
@@ -1281,6 +1282,17 @@
   }
 
   /* ══ boot ════════════════════════════════════════════════ */
+  function shortenForPhone() {
+    // "Search assets…" does not fit beside the live pill and avatar on a
+    // narrow phone; the icon already says what the field is.
+    var mq = window.matchMedia('(max-width: 620px)');
+    var apply = function () {
+      searchInput.placeholder = mq.matches ? 'Search' : 'Search assets…';
+    };
+    apply();
+    if (mq.addEventListener) mq.addEventListener('change', apply);
+  }
+
   function paintStaticIcons() {
     $$('[data-icon]').forEach(function (n) {
       var size = n.classList.contains('search-ic') ? 15 : 18;
@@ -1298,6 +1310,7 @@
 
   async function boot() {
     paintStaticIcons();
+    shortenForPhone();
 
     var s;
     try {
@@ -1328,6 +1341,11 @@
     $('#mobileNav').hidden = false;
 
     go(state.view || 'home');
+
+    // Render on every ingest: the feed hands prices to the engine, the
+    // engine notifies its listeners, onTick paints. Without this one
+    // subscription the page renders once at connect and then freezes.
+    mkt.on(onTick);
     connectStream();
 
     setTimeout(function () {
@@ -1336,6 +1354,6 @@
     }, 700);
   }
 
-  window.addEventListener('pagehide', function () { if (es) es.close(); });
+  window.addEventListener('pagehide', function () { M.feed.close(); });
   boot();
 })();

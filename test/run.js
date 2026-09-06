@@ -424,6 +424,76 @@ async function main() {
     assert.ok(after.some((v, i) => v !== before[i]), 'nothing moved');
   });
 
+  console.log('\nlive feed wiring');
+  await test('the engine notifies subscribers on every ingest', async () => {
+    const Moneta = require('../server/engine.js');
+    let seen = 0;
+    let lastTick = -1;
+    const off = Moneta.market.on((_syms, tick) => { seen++; lastTick = tick; });
+    Moneta.market.ingest(Moneta.market.snapshot(), 4242);
+    Moneta.market.ingest(Moneta.market.snapshot(), 4243);
+    off();
+    assert.strictEqual(seen, 2, 'ingest did not notify subscribers');
+    assert.strictEqual(lastTick, 4243, 'tick number not passed through');
+  });
+  await test('unsubscribing actually stops delivery', async () => {
+    const Moneta = require('../server/engine.js');
+    let seen = 0;
+    const off = Moneta.market.on(() => { seen++; });
+    off();
+    Moneta.market.ingest(Moneta.market.snapshot(), 5000);
+    assert.strictEqual(seen, 0, 'listener still fired after unsubscribe');
+  });
+  await test('portal.js subscribes its renderer to market ticks', async () => {
+    // Regression guard. This wiring was once removed during a refactor and
+    // the page rendered a single frame then froze — which screenshots and
+    // click-through tests cannot see.
+    const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'js', 'portal.js'), 'utf8');
+    assert.match(src, /\bmkt\.on\(\s*onTick\s*\)/,
+      'portal.js must call mkt.on(onTick) or the live feed paints once and stops');
+  });
+  await test('both feed transports expose the same shape', async () => {
+    const dir = path.join(__dirname, '..', 'public', 'assets', 'js');
+    for (const f of ['feed-sse.js', 'standalone.js']) {
+      const src = fs.readFileSync(path.join(dir, f), 'utf8');
+      assert.match(src, /connect\s*[:(]/, f + ' has no connect()');
+      assert.match(src, /close\s*[:(]/, f + ' has no close()');
+    }
+  });
+
+  console.log('\ninstallable build');
+  await test('the manifest is valid and points at real icons', async () => {
+    const r = await c.get('/manifest.webmanifest');
+    assert.strictEqual(r.status, 200);
+    assert.match(r.headers['content-type'], /manifest\+json/);
+    const m = JSON.parse(r.text);
+    assert.ok(m.name && m.short_name && m.start_url, 'manifest is missing required fields');
+    assert.ok(m.icons.length >= 2, 'needs at least a 192 and a 512 icon');
+    assert.ok(m.icons.some((i) => i.purpose === 'maskable'), 'needs a maskable icon');
+    for (const i of m.icons) {
+      const ic = await c.get(i.src);
+      assert.strictEqual(ic.status, 200, 'missing icon ' + i.src);
+    }
+  });
+  await test('the service worker is served uncached', async () => {
+    const r = await c.get('/sw.js');
+    assert.strictEqual(r.status, 200);
+    assert.match(r.headers['cache-control'], /no-cache/,
+      'a cached service worker can never update itself');
+  });
+  await test('the service worker never caches the API', async () => {
+    const sw = fs.readFileSync(path.join(__dirname, '..', 'public', 'sw.js'), 'utf8');
+    assert.match(sw, /\/api\//, 'sw.js does not mention /api at all');
+    assert.match(sw, /startsWith\('\/api\/'\)[\s\S]{0,40}return/,
+      'sw.js must bail out early on /api so balances and prices are never stale');
+  });
+  await test('the CSP admits the manifest and the worker', async () => {
+    const r = await c.get('/');
+    const csp = r.headers['content-security-policy'];
+    assert.match(csp, /manifest-src 'self'/);
+    assert.match(csp, /worker-src 'self'/);
+  });
+
   console.log('\nclient bundle hygiene');
   await test('no emoji anywhere in the shipped client', async () => {
     const dir = path.join(__dirname, '..', 'public');
