@@ -494,6 +494,50 @@ async function main() {
     assert.match(csp, /worker-src 'self'/);
   });
 
+  console.log('\nprofile header layout');
+  await test('the profile body outranks the banner in paint order', async () => {
+    // The banner is positioned; without an explicit order it painted over the
+    // static content after it, slicing the avatar and hiding the name.
+    const css = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'css', 'portal.css'), 'utf8');
+    const body = css.match(/\.profile-body\s*\{[^}]*\}/);
+    assert.ok(body, '.profile-body rule missing');
+    assert.match(body[0], /position:\s*relative/, '.profile-body needs a stacking position');
+    assert.match(body[0], /z-index:\s*1/, '.profile-body must sit above the banner');
+  });
+  await test('only the avatar overlaps the banner, never the whole row', async () => {
+    const css = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'css', 'portal.css'), 'utf8');
+    const rows = css.match(/\.profile-id\s*\{[^}]*\}/g) || [];
+    assert.ok(rows.length, '.profile-id rule missing');
+    for (const r of rows) {
+      assert.ok(!/margin-top:\s*-/.test(r),
+        'a negative margin on .profile-id drags the name and handle under the banner');
+    }
+    const av = css.match(/\.profile-id\s+\.av\s*\{[^}]*\}/);
+    assert.ok(av, '.profile-id .av rule missing');
+    assert.match(av[0], /margin-top:\s*-/, 'the avatar itself should be the thing that rides up');
+    assert.match(av[0], /z-index:\s*2/, 'the avatar must paint above the banner');
+  });
+  await test('the editor repaints selections without rebuilding inputs', async () => {
+    // Rebuilding every input on a swatch click yanked the caret out of the
+    // field someone was typing in.
+    const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'js', 'portal.js'), 'utf8');
+    assert.match(src, /function markSelections\(/, 'markSelections() is gone');
+    for (const picker of ['sigilPicks', 'swatches', 'bannerPicks']) {
+      const handler = src.match(new RegExp("\\$\\('#" + picker + "'\\)\\.addEventListener[\\s\\S]{0,700}?\\n  \\}\\);"));
+      if (!handler) continue;
+      assert.ok(!/\bfillEditor\(\)/.test(handler[0]),
+        picker + ' still calls fillEditor(), which resets every input');
+    }
+  });
+  await test('a rejected profile save does not overwrite what was typed', async () => {
+    const src = fs.readFileSync(path.join(__dirname, '..', 'public', 'assets', 'js', 'portal.js'), 'utf8');
+    const flush = src.match(/async function flushProfile\(\)[\s\S]*?\n  \}/);
+    assert.ok(flush, 'flushProfile() not found');
+    const katch = flush[0].slice(flush[0].indexOf('catch'));
+    assert.ok(!/fillEditor\(\)|renderProfile\(\)/.test(katch),
+      'refilling the form on a validation error made the handle field impossible to retype');
+  });
+
   console.log('\nclient bundle hygiene');
   await test('no emoji anywhere in the shipped client', async () => {
     const dir = path.join(__dirname, '..', 'public');

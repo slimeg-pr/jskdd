@@ -871,6 +871,17 @@
     $('#greeting').textContent = profile().name.split(' ')[0] + '’s portfolio';
   }
 
+  /** Re-read the header text from state — used after the server answers. */
+  function syncHeader() {
+    var p = profile();
+    $('#profName').textContent = p.name;
+    $('#profHandle').textContent = '@' + me.handle;
+    $('#profTitle').textContent = p.title;
+    $('#profBio').textContent = p.bio || 'No bio yet.';
+    if ($('#fHandle') && document.activeElement !== $('#fHandle')) $('#fHandle').value = me.handle;
+    if ($('#fName') && document.activeElement !== $('#fName')) $('#fName').value = p.name;
+  }
+
   function bannerCss() {
     var b = BANNER_BY_ID[profile().banner] || BANNERS[0];
     return b.css;
@@ -884,12 +895,17 @@
     $('#profHandle').textContent = '@' + me.handle;
     $('#profTitle').textContent = p.title;
     $('#profBio').textContent = p.bio || 'No bio yet.';
-    $('#profMeta').innerHTML =
-      '<span>' + icon('map', 13) + esc(p.location || 'Location not set') + '</span>' +
-      '<span>' + icon('calendar', 13) + 'Joined ' +
-        esc(new Date(me.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })) + '</span>' +
-      '<span>' + icon('badge', 13) + M.badges.total + ' badges unlocked</span>' +
-      '<span>' + icon('mail', 13) + esc(me.email) + '</span>';
+    var meta = [
+      ['map', p.location || 'Location not set'],
+      ['calendar', 'Joined ' + new Date(me.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })],
+      ['badge', M.badges.total + ' badges unlocked']
+    ];
+    // The standalone build has no email; an icon with no text beside it is
+    // just a broken-looking chip.
+    if (me.email) meta.push(['mail', me.email]);
+    $('#profMeta').innerHTML = meta.map(function (m2) {
+      return '<span>' + icon(m2[0], 13) + esc(m2[1]) + '</span>';
+    }).join('');
 
     var pos = positions();
     $('#profStats').innerHTML = [
@@ -908,6 +924,25 @@
     fillEditor();
   }
 
+  /** Repaint just the pressed-state of the three pickers. */
+  function markSelections() {
+    var p = profile();
+    $$('#sigilPicks [data-sigil]').forEach(function (b) {
+      b.classList.toggle('on', p.avatarKind === 'sigil' && p.avatarSigil === b.dataset.sigil);
+    });
+    $$('#swatches [data-accent]').forEach(function (b) {
+      b.classList.toggle('on', p.accent === b.dataset.accent);
+    });
+    $$('#bannerPicks [data-banner]').forEach(function (b) {
+      b.classList.toggle('on', p.banner === b.dataset.banner);
+    });
+    $('#clearAvatar').hidden = p.avatarKind !== 'image';
+  }
+
+  /**
+   * Rebuild the whole editor from state. Writing to inputs moves the caret,
+   * so never call this while someone is typing — see markSelections().
+   */
   function fillEditor() {
     var p = profile();
     $('#fName').value = p.name;
@@ -972,15 +1007,15 @@
       me = Object.assign(me, r.user);
       applyAccent();
       renderIdentity();
+      syncHeader();
       setSaveState('Saved', 'ok');
       setTimeout(function () { setSaveState(''); }, 1600);
     } catch (err) {
+      if (err && err.status === 401) { fail(err); return; }
+      // Show why and leave the form exactly as typed. Re-filling it from the
+      // server here meant a handle that was briefly too short snapped back
+      // mid-word, and you could never finish typing a new one.
       setSaveState((err && err.message) || 'Not saved', 'bad');
-      // Pull authoritative state back so the form stops lying to the user.
-      try {
-        var s = await api.session();
-        if (s.authenticated) { me = s.user; fillEditor(); renderProfile(); }
-      } catch (e2) { /* offline */ }
     }
   }
 
@@ -1003,7 +1038,16 @@
     queue({ name: e.target.value });
   });
   $('#fHandle').addEventListener('input', function (e) {
-    queue({ handle: e.target.value.trim() });
+    var v = e.target.value.trim();
+    $('#profHandle').textContent = '@' + v;
+    $('#topHandle').textContent = '@' + v;
+    // Don't fire a doomed request on every keystroke of a half-typed handle;
+    // the server still has the final say when this does go.
+    if (!/^[a-z0-9](?:[a-z0-9_.]{1,22}[a-z0-9])$/.test(v.toLowerCase())) {
+      setSaveState('Handle: 3–24 characters, letters, numbers, dots, underscores.', 'bad');
+      return;
+    }
+    queue({ handle: v });
   });
   $('#fLocation').addEventListener('input', function (e) {
     profile().location = e.target.value;
@@ -1026,7 +1070,7 @@
     if (!b) return;
     profile().avatarSigil = b.dataset.sigil;
     profile().avatarKind = 'sigil';
-    fillEditor();
+    markSelections();
     $('#profAv').innerHTML = avatarHTML(104);
     renderIdentity();
     queue({ avatarSigil: b.dataset.sigil });
@@ -1037,13 +1081,14 @@
     if (!b) return;
     profile().accent = b.dataset.accent;
     applyAccent();
-    fillEditor();
+    $('#fAccentCustom').value = b.dataset.accent;
+    markSelections();
     queue({ accent: b.dataset.accent });
   });
   $('#fAccentCustom').addEventListener('input', function (e) {
     profile().accent = e.target.value;
     applyAccent();
-    $$('#swatches .swatch').forEach(function (s) { s.classList.remove('on'); });
+    markSelections();
     queue({ accent: e.target.value });
   });
 
@@ -1052,7 +1097,7 @@
     if (!b) return;
     profile().banner = b.dataset.banner;
     $('#profBanner').style.background = bannerCss();
-    fillEditor();
+    markSelections();
     queue({ banner: b.dataset.banner });
   });
 
